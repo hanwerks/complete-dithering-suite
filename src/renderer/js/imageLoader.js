@@ -16,6 +16,12 @@ class ImageLoader {
         this.lastMouseY = 0;
         
         this.init();
+        
+        // Initialize logging for development
+        if (window.devLogger) {
+            this.logger = window.devLogger;
+            this.logger.logInfo('ImageLoader', 'ImageLoader initialized');
+        }
     }
 
     init() {
@@ -109,6 +115,10 @@ class ImageLoader {
                 this.panY = mouseY - zoomCenterY * this.zoom;
                 
                 this.redrawCanvas();
+                
+                if (this.logger) {
+                    this.logger.logCanvasInteraction('zoom', { x: mouseX, y: mouseY }, this.zoom);
+                }
             }
         });
 
@@ -369,6 +379,14 @@ class ImageLoader {
     }
 
     loadImage(file) {
+        if (this.logger) {
+            this.logger.logInfo('ImageLoader', `Starting image load: ${file.name}`, {
+                size: file.size,
+                type: file.type
+            });
+        }
+        
+        const loadTimer = this.logger ? this.logger.startTimer(`Image Load: ${file.name}`) : null;
         const reader = new FileReader();
         
         reader.onload = (e) => {
@@ -377,15 +395,35 @@ class ImageLoader {
                 this.currentImage = img;
                 this.displayImage(img);
                 this.showSuccess(`Loaded: ${file.name} (${img.width}x${img.height})`);
+                
+                // Get image data and dispatch event for dithering controls
+                const imageData = this.getImageData();
+                if (imageData) {
+                    const event = new CustomEvent('imageLoaded', {
+                        detail: imageData
+                    });
+                    document.dispatchEvent(event);
+                }
+                
+                if (this.logger) {
+                    this.logger.logImageLoaded(file.name, img.width, img.height, file.size);
+                    if (loadTimer) loadTimer.end();
+                }
             };
             img.onerror = () => {
                 this.showError('Failed to load image. Please try a different file.');
+                if (this.logger) {
+                    this.logger.logFileError(file.name, 'Image decode failed');
+                }
             };
             img.src = e.target.result;
         };
 
         reader.onerror = () => {
             this.showError('Failed to read file. Please try again.');
+            if (this.logger) {
+                this.logger.logFileError(file.name, 'FileReader error');
+            }
         };
 
         reader.readAsDataURL(file);

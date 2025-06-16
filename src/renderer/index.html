@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Dithering Tool</title>
     <link rel="stylesheet" href="styles/main.css">
+    <script src="js/logger.js"></script>
+    <script src="js/ditheringEngine.js"></script>
+    <script src="js/ditheringControls.js"></script>
     <script src="js/imageLoader.js"></script>
 </head>
 <body>
@@ -18,15 +21,46 @@
                 <div class="panel-content">
                     <div class="section">
                         <h3>Algorithm Settings</h3>
-                        <p>Dithering algorithm controls will go here</p>
+                        <div class="control-group">
+                            <label for="algorithm-select">Algorithm:</label>
+                            <select id="algorithm-select">
+                                <option value="floyd-steinberg">Floyd-Steinberg</option>
+                                <option value="jarvis-judice-ninke">Jarvis-Judice-Ninke</option>
+                                <option value="atkinson">Atkinson</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="threshold-slider">Threshold:</label>
+                            <input type="range" id="threshold-slider" min="0" max="255" value="128">
+                            <span id="threshold-value">128</span>
+                        </div>
+                        <div class="control-group">
+                            <label for="error-diffusion-slider">Error Diffusion:</label>
+                            <input type="range" id="error-diffusion-slider" min="0" max="200" value="100">
+                            <span id="error-diffusion-value">1.0</span>
+                        </div>
+                        <div class="control-group">
+                            <label for="grayscale-checkbox">Convert to Grayscale:</label>
+                            <input type="checkbox" id="grayscale-checkbox" checked>
+                        </div>
                     </div>
                     <div class="section">
-                        <h3>Noise Controls</h3>
-                        <p>Noise and randomization settings will go here</p>
+                        <h3>Actions</h3>
+                        <div class="control-group">
+                            <button id="apply-dithering-btn" class="primary-btn" disabled>Apply Dithering</button>
+                            <button id="reset-image-btn" class="secondary-btn" disabled>Reset to Original</button>
+                        </div>
+                        <div class="control-group">
+                            <button id="export-image-btn" class="secondary-btn" disabled>Export Image</button>
+                        </div>
                     </div>
                     <div class="section">
-                        <h3>Color Palette</h3>
-                        <p>Color palette selection and editing will go here</p>
+                        <h3>Algorithm Info</h3>
+                        <div id="algorithm-info" class="info-panel">
+                            <p><strong>Floyd-Steinberg</strong></p>
+                            <p>Classic error diffusion dithering with 4-pixel error distribution</p>
+                            <p>Quality: High | Speed: Fast</p>
+                        </div>
                     </div>
                 </div>
             </div>
