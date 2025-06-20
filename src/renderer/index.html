@@ -6,9 +6,11 @@
     <title>Advanced Dithering Tool</title>
     <link rel="stylesheet" href="styles/main.css">
     <script src="js/logger.js"></script>
+    <script src="js/colorPalettes.js"></script>
     <script src="js/ditheringEngine.js"></script>
     <script src="js/ditheringControls.js"></script>
     <script src="js/imageLoader.js"></script>
+    <script src="js/collapsibleSections.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -19,47 +21,433 @@
                     <h2>Parameters</h2>
                 </div>
                 <div class="panel-content">
-                    <div class="section">
-                        <h3>Algorithm Settings</h3>
-                        <div class="control-group">
-                            <label for="algorithm-select">Algorithm:</label>
-                            <select id="algorithm-select">
-                                <option value="floyd-steinberg">Floyd-Steinberg</option>
-                                <option value="jarvis-judice-ninke">Jarvis-Judice-Ninke</option>
-                                <option value="atkinson">Atkinson</option>
-                            </select>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="algorithm-settings">
+                            <h3>Algorithm Settings</h3>
+                            <span class="toggle-icon">▼</span>
                         </div>
-                        <div class="control-group">
-                            <label for="threshold-slider">Threshold:</label>
-                            <input type="range" id="threshold-slider" min="0" max="255" value="128">
-                            <span id="threshold-value">128</span>
-                        </div>
-                        <div class="control-group">
-                            <label for="error-diffusion-slider">Error Diffusion:</label>
-                            <input type="range" id="error-diffusion-slider" min="0" max="200" value="100">
-                            <span id="error-diffusion-value">1.0</span>
-                        </div>
-                        <div class="control-group">
-                            <label for="grayscale-checkbox">Convert to Grayscale:</label>
-                            <input type="checkbox" id="grayscale-checkbox" checked>
+                        <div class="section-content" id="algorithm-settings">
+                            <div class="control-group">
+                                <label for="algorithm-select">Algorithm:</label>
+                                <select id="algorithm-select">
+                                    <optgroup label="Error Diffusion">
+                                        <option value="floyd-steinberg">Floyd-Steinberg</option>
+                                        <option value="jarvis-judice-ninke">Jarvis-Judice-Ninke</option>
+                                        <option value="atkinson">Atkinson</option>
+                                        <option value="sierra">Sierra</option>
+                                        <option value="burkes">Burkes</option>
+                                        <option value="sierra-2-4a">Sierra-2-4A</option>
+                                        <option value="fan">Fan</option>
+                                        <option value="shiau-fan">Shiau-Fan</option>
+                                        <option value="ostromoukhov">Ostromoukhov</option>
+                                    </optgroup>
+                                    <optgroup label="Ordered Dithering">
+                                        <option value="bayer-2x2">Bayer 2x2</option>
+                                        <option value="bayer-4x4">Bayer 4x4</option>
+                                        <option value="bayer-8x8">Bayer 8x8</option>
+                                        <option value="blue-noise">Blue Noise</option>
+                                        <option value="green-noise">Green Noise</option>
+                                    </optgroup>
+                                    <optgroup label="Spatial Algorithms">
+                                        <option value="riemersma">Riemersma</option>
+                                        <option value="dot-diffusion">Dot Diffusion</option>
+                                    </optgroup>
+                                    <optgroup label="Experimental">
+                                        <option value="variable-coefficient">Variable Coefficient</option>
+                                        <option value="void-cluster">Void-and-Cluster</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="threshold-slider">Threshold:</label>
+                                <input type="range" id="threshold-slider" min="0" max="255" value="128">
+                                <input type="number" id="threshold-value" min="0" max="255" value="128" class="parameter-input">
+                            </div>
+                            <div class="control-group">
+                                <label for="error-diffusion-slider">Dithering Intensity:</label>
+                                <input type="range" id="error-diffusion-slider" min="0" max="200" value="100">
+                                <input type="number" id="error-diffusion-value" min="0" max="2" step="0.1" value="1.0" class="parameter-input">
+                            </div>
+                            <div class="control-group">
+                                <label for="dither-size-slider">Dither Size:</label>
+                                <input type="range" id="dither-size-slider" min="50" max="400" value="100">
+                                <input type="number" id="dither-size-value" min="0.5" max="4.0" step="0.1" value="1.0" class="parameter-input">
+                            </div>
+                            <div class="control-group">
+                                <button id="reset-algorithm-btn" class="secondary-btn">Reset Algorithm</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="section">
-                        <h3>Actions</h3>
-                        <div class="control-group">
-                            <button id="apply-dithering-btn" class="primary-btn" disabled>Apply Dithering</button>
-                            <button id="reset-image-btn" class="secondary-btn" disabled>Reset to Original</button>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="color-adjustments">
+                            <h3>Color Adjustments</h3>
+                            <span class="toggle-icon">▼</span>
                         </div>
-                        <div class="control-group">
-                            <button id="export-image-btn" class="secondary-btn" disabled>Export Image</button>
+                        <div class="section-content" id="color-adjustments">
+                            <!-- Color Mode Selection -->
+                            <div class="control-group">
+                                <label for="color-mode-select">Color Mode:</label>
+                                <select id="color-mode-select">
+                                    <option value="grayscale">Grayscale</option>
+                                    <option value="palette">Color Palette</option>
+                                    <option value="hsv">HSV Processing</option>
+                                </select>
+                            </div>
+
+                            <!-- Palette Editor -->
+                            <div class="section collapsible-section">
+                                <div class="section-header" data-target="palette-editor">
+                                    <h3>Palette Editor</h3>
+                                    <span class="toggle-icon">▼</span>
+                                </div>
+                                <div class="section-content" id="palette-editor">
+                                    <!-- Palette Selection Controls -->
+                                    <div class="control-group" id="palette-controls" style="display: none;">
+                                        <label for="palette-select">Palette:</label>
+                                        <select id="palette-select">
+                                            <option value="custom">Custom</option>
+                                            <option value="retro">Retro Gaming</option>
+                                            <option value="cga">CGA (4 colors)</option>
+                                            <option value="ega">EGA (16 colors)</option>
+                                            <option value="c64">Commodore 64</option>
+                                            <option value="gameboy">Game Boy</option>
+                                            <option value="nes">NES</option>
+                                        </select>
+                                    </div>
+                                    <div class="control-group" id="color-count-controls" style="display: none;">
+                                        <label for="color-count-slider">Color Count:</label>
+                                        <input type="range" id="color-count-slider" min="2" max="256" value="16">
+                                        <input type="number" id="color-count-value" min="2" max="256" value="16" class="parameter-input">
+                                    </div>
+
+                                    <!-- Color Swatches for All Palettes -->
+                                    <div class="control-group" id="gameboy-swatches" style="display: none;">
+                                        <label>Game Boy Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="gameboy-color-0" data-color-index="0" style="background-color: rgb(15, 56, 15);"></div>
+                                            <div class="color-swatch" id="gameboy-color-1" data-color-index="1" style="background-color: rgb(48, 98, 48);"></div>
+                                            <div class="color-swatch" id="gameboy-color-2" data-color-index="2" style="background-color: rgb(139, 172, 15);"></div>
+                                            <div class="color-swatch" id="gameboy-color-3" data-color-index="3" style="background-color: rgb(155, 188, 15);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" id="cga-swatches" style="display: none;">
+                                        <label>CGA Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="cga-color-0" data-color-index="0" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="cga-color-1" data-color-index="1" style="background-color: rgb(0, 255, 255);"></div>
+                                            <div class="color-swatch" id="cga-color-2" data-color-index="2" style="background-color: rgb(255, 0, 255);"></div>
+                                            <div class="color-swatch" id="cga-color-3" data-color-index="3" style="background-color: rgb(255, 255, 255);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" id="retro-swatches" style="display: none;">
+                                        <label>Retro Gaming Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="retro-color-0" data-color-index="0" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-1" data-color-index="1" style="background-color: rgb(255, 255, 255);"></div>
+                                            <div class="color-swatch" id="retro-color-2" data-color-index="2" style="background-color: rgb(255, 0, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-3" data-color-index="3" style="background-color: rgb(0, 255, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-4" data-color-index="4" style="background-color: rgb(0, 0, 255);"></div>
+                                            <div class="color-swatch" id="retro-color-5" data-color-index="5" style="background-color: rgb(255, 255, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-6" data-color-index="6" style="background-color: rgb(255, 0, 255);"></div>
+                                            <div class="color-swatch" id="retro-color-7" data-color-index="7" style="background-color: rgb(0, 255, 255);"></div>
+                                            <div class="color-swatch" id="retro-color-8" data-color-index="8" style="background-color: rgb(128, 0, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-9" data-color-index="9" style="background-color: rgb(0, 128, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-10" data-color-index="10" style="background-color: rgb(0, 0, 128);"></div>
+                                            <div class="color-swatch" id="retro-color-11" data-color-index="11" style="background-color: rgb(128, 128, 0);"></div>
+                                            <div class="color-swatch" id="retro-color-12" data-color-index="12" style="background-color: rgb(128, 0, 128);"></div>
+                                            <div class="color-swatch" id="retro-color-13" data-color-index="13" style="background-color: rgb(0, 128, 128);"></div>
+                                            <div class="color-swatch" id="retro-color-14" data-color-index="14" style="background-color: rgb(192, 192, 192);"></div>
+                                            <div class="color-swatch" id="retro-color-15" data-color-index="15" style="background-color: rgb(128, 128, 128);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" id="ega-swatches" style="display: none;">
+                                        <label>EGA Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="ega-color-0" data-color-index="0" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="ega-color-1" data-color-index="1" style="background-color: rgb(0, 0, 170);"></div>
+                                            <div class="color-swatch" id="ega-color-2" data-color-index="2" style="background-color: rgb(0, 170, 0);"></div>
+                                            <div class="color-swatch" id="ega-color-3" data-color-index="3" style="background-color: rgb(0, 170, 170);"></div>
+                                            <div class="color-swatch" id="ega-color-4" data-color-index="4" style="background-color: rgb(170, 0, 0);"></div>
+                                            <div class="color-swatch" id="ega-color-5" data-color-index="5" style="background-color: rgb(170, 0, 170);"></div>
+                                            <div class="color-swatch" id="ega-color-6" data-color-index="6" style="background-color: rgb(170, 85, 0);"></div>
+                                            <div class="color-swatch" id="ega-color-7" data-color-index="7" style="background-color: rgb(170, 170, 170);"></div>
+                                            <div class="color-swatch" id="ega-color-8" data-color-index="8" style="background-color: rgb(85, 85, 85);"></div>
+                                            <div class="color-swatch" id="ega-color-9" data-color-index="9" style="background-color: rgb(85, 85, 255);"></div>
+                                            <div class="color-swatch" id="ega-color-10" data-color-index="10" style="background-color: rgb(85, 255, 85);"></div>
+                                            <div class="color-swatch" id="ega-color-11" data-color-index="11" style="background-color: rgb(85, 255, 255);"></div>
+                                            <div class="color-swatch" id="ega-color-12" data-color-index="12" style="background-color: rgb(255, 85, 85);"></div>
+                                            <div class="color-swatch" id="ega-color-13" data-color-index="13" style="background-color: rgb(255, 85, 255);"></div>
+                                            <div class="color-swatch" id="ega-color-14" data-color-index="14" style="background-color: rgb(255, 255, 85);"></div>
+                                            <div class="color-swatch" id="ega-color-15" data-color-index="15" style="background-color: rgb(255, 255, 255);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" id="c64-swatches" style="display: none;">
+                                        <label>Commodore 64 Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="c64-color-0" data-color-index="0" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="c64-color-1" data-color-index="1" style="background-color: rgb(255, 255, 255);"></div>
+                                            <div class="color-swatch" id="c64-color-2" data-color-index="2" style="background-color: rgb(136, 57, 50);"></div>
+                                            <div class="color-swatch" id="c64-color-3" data-color-index="3" style="background-color: rgb(103, 182, 189);"></div>
+                                            <div class="color-swatch" id="c64-color-4" data-color-index="4" style="background-color: rgb(139, 63, 150);"></div>
+                                            <div class="color-swatch" id="c64-color-5" data-color-index="5" style="background-color: rgb(85, 160, 73);"></div>
+                                            <div class="color-swatch" id="c64-color-6" data-color-index="6" style="background-color: rgb(64, 49, 141);"></div>
+                                            <div class="color-swatch" id="c64-color-7" data-color-index="7" style="background-color: rgb(191, 206, 114);"></div>
+                                            <div class="color-swatch" id="c64-color-8" data-color-index="8" style="background-color: rgb(139, 84, 41);"></div>
+                                            <div class="color-swatch" id="c64-color-9" data-color-index="9" style="background-color: rgb(87, 66, 0);"></div>
+                                            <div class="color-swatch" id="c64-color-10" data-color-index="10" style="background-color: rgb(184, 105, 98);"></div>
+                                            <div class="color-swatch" id="c64-color-11" data-color-index="11" style="background-color: rgb(80, 80, 80);"></div>
+                                            <div class="color-swatch" id="c64-color-12" data-color-index="12" style="background-color: rgb(120, 120, 120);"></div>
+                                            <div class="color-swatch" id="c64-color-13" data-color-index="13" style="background-color: rgb(148, 224, 137);"></div>
+                                            <div class="color-swatch" id="c64-color-14" data-color-index="14" style="background-color: rgb(120, 105, 196);"></div>
+                                            <div class="color-swatch" id="c64-color-15" data-color-index="15" style="background-color: rgb(159, 159, 159);"></div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group" id="nes-swatches" style="display: none;">
+                                        <label>NES Colors:</label>
+                                        <div class="color-swatches">
+                                            <div class="color-swatch" id="nes-color-0" data-color-index="0" style="background-color: rgb(124, 124, 124);"></div>
+                                            <div class="color-swatch" id="nes-color-1" data-color-index="1" style="background-color: rgb(0, 0, 252);"></div>
+                                            <div class="color-swatch" id="nes-color-2" data-color-index="2" style="background-color: rgb(0, 0, 188);"></div>
+                                            <div class="color-swatch" id="nes-color-3" data-color-index="3" style="background-color: rgb(68, 40, 188);"></div>
+                                            <div class="color-swatch" id="nes-color-4" data-color-index="4" style="background-color: rgb(148, 0, 132);"></div>
+                                            <div class="color-swatch" id="nes-color-5" data-color-index="5" style="background-color: rgb(168, 0, 32);"></div>
+                                            <div class="color-swatch" id="nes-color-6" data-color-index="6" style="background-color: rgb(168, 16, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-7" data-color-index="7" style="background-color: rgb(136, 20, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-8" data-color-index="8" style="background-color: rgb(80, 48, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-9" data-color-index="9" style="background-color: rgb(0, 120, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-10" data-color-index="10" style="background-color: rgb(0, 104, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-11" data-color-index="11" style="background-color: rgb(0, 88, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-12" data-color-index="12" style="background-color: rgb(0, 64, 88);"></div>
+                                            <div class="color-swatch" id="nes-color-13" data-color-index="13" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-14" data-color-index="14" style="background-color: rgb(0, 0, 0);"></div>
+                                            <div class="color-swatch" id="nes-color-15" data-color-index="15" style="background-color: rgb(0, 0, 0);"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- HSV Adjustments -->
+                                    <div class="adjustment-group" id="hsv-adjustments" style="display: none;">
+                                        <div class="control-group">
+                                            <label for="hsv-hue-slider">Hue Shift:</label>
+                                            <input type="range" id="hsv-hue-slider" min="-180" max="180" value="0">
+                                            <input type="number" id="hsv-hue-value" min="-180" max="180" value="0" class="parameter-input">
+                                            <span class="unit">°</span>
+                                        </div>
+                                        <div class="control-group">
+                                            <label for="hsv-saturation-slider">Saturation:</label>
+                                            <input type="range" id="hsv-saturation-slider" min="0" max="200" value="100">
+                                            <input type="number" id="hsv-saturation-value" min="0" max="200" value="100" class="parameter-input">
+                                            <span class="unit">%</span>
+                                        </div>
+                                        <div class="control-group">
+                                            <label for="hsv-brightness-slider">Brightness:</label>
+                                            <input type="range" id="hsv-brightness-slider" min="0" max="200" value="100">
+                                            <input type="number" id="hsv-brightness-value" min="0" max="200" value="100" class="parameter-input">
+                                            <span class="unit">%</span>
+                                        </div>
+                                        <div class="control-group">
+                                            <button id="reset-hsv-colors-btn" class="secondary-btn">Reset Colors</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chromatic Effects -->
+                            <div class="section collapsible-section">
+                                <div class="section-header" data-target="chromatic-effects">
+                                    <h3>Chromatic Effects</h3>
+                                    <span class="toggle-icon">▼</span>
+                                </div>
+                                <div class="section-content" id="chromatic-effects">
+                                    <div class="control-group">
+                                        <label for="chroma-intensity-slider">Aberration Intensity:</label>
+                                        <input type="range" id="chroma-intensity-slider" min="0" max="100" value="0">
+                                        <input type="number" id="chroma-intensity-value" min="0" max="100" value="0" class="parameter-input">
+                                        <span class="unit">%</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-red-x-slider">Red Offset X:</label>
+                                        <input type="range" id="chroma-red-x-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-red-x-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-red-y-slider">Red Offset Y:</label>
+                                        <input type="range" id="chroma-red-y-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-red-y-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-green-x-slider">Green Offset X:</label>
+                                        <input type="range" id="chroma-green-x-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-green-x-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-green-y-slider">Green Offset Y:</label>
+                                        <input type="range" id="chroma-green-y-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-green-y-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-blue-x-slider">Blue Offset X:</label>
+                                        <input type="range" id="chroma-blue-x-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-blue-x-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="chroma-blue-y-slider">Blue Offset Y:</label>
+                                        <input type="range" id="chroma-blue-y-slider" min="-10" max="10" value="0">
+                                        <input type="number" id="chroma-blue-y-value" min="-10" max="10" value="0" class="parameter-input">
+                                        <span class="unit">px</span>
+                                    </div>
+                                    <div class="control-group">
+                                        <button id="reset-chromatic-btn" class="secondary-btn">Reset Chromatic</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grayscale/Monochrome adjustments -->
+                            <div class="adjustment-group" id="grayscale-adjustments" style="display: none;">
+                                <div class="control-group">
+                                    <label for="grayscale-hue-slider">Hue Tint:</label>
+                                    <input type="range" id="grayscale-hue-slider" min="-180" max="180" value="0">
+                                    <input type="number" id="grayscale-hue-value" min="-180" max="180" value="0" class="parameter-input">
+                                    <span class="unit">°</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="grayscale-saturation-slider">Saturation:</label>
+                                    <input type="range" id="grayscale-saturation-slider" min="0" max="100" value="0">
+                                    <input type="number" id="grayscale-saturation-value" min="0" max="100" value="0" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="grayscale-brightness-slider">Brightness:</label>
+                                    <input type="range" id="grayscale-brightness-slider" min="0" max="200" value="100">
+                                    <input type="number" id="grayscale-brightness-value" min="0" max="200" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <button id="reset-grayscale-colors-btn" class="secondary-btn">Reset Colors</button>
+                                </div>
+                            </div>
+
+                            <!-- Palette color adjustments -->
+                            <div class="adjustment-group" id="palette-adjustments" style="display: none;">
+                                <div class="control-group">
+                                    <label for="palette-hue-slider">Hue Shift:</label>
+                                    <input type="range" id="palette-hue-slider" min="-180" max="180" value="0">
+                                    <input type="number" id="palette-hue-value" min="-180" max="180" value="0" class="parameter-input">
+                                    <span class="unit">°</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="palette-saturation-slider">Saturation:</label>
+                                    <input type="range" id="palette-saturation-slider" min="0" max="200" value="100">
+                                    <input type="number" id="palette-saturation-value" min="0" max="200" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="palette-brightness-slider">Brightness:</label>
+                                    <input type="range" id="palette-brightness-slider" min="0" max="200" value="100">
+                                    <input type="number" id="palette-brightness-value" min="0" max="200" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="palette-contrast-slider">Contrast:</label>
+                                    <input type="range" id="palette-contrast-slider" min="0" max="200" value="100">
+                                    <input type="number" id="palette-contrast-value" min="0" max="200" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
-                    <div class="section">
-                        <h3>Algorithm Info</h3>
-                        <div id="algorithm-info" class="info-panel">
-                            <p><strong>Floyd-Steinberg</strong></p>
-                            <p>Classic error diffusion dithering with 4-pixel error distribution</p>
-                            <p>Quality: High | Speed: Fast</p>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="basic-image-controls">
+                            <h3>Basic Image Controls</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="basic-image-controls">
+                            <div class="control-group">
+                                <label for="enable-basic-adjustments">Enable Adjustments:</label>
+                                <input type="checkbox" id="enable-basic-adjustments">
+                                <span class="debug-label">(Debug Feature)</span>
+                            </div>
+                            <div class="control-group" id="basic-adjustments-controls" style="display: none;">
+                                <div class="control-group">
+                                    <label for="basic-brightness-slider">Brightness:</label>
+                                    <input type="range" id="basic-brightness-slider" min="50" max="150" value="100">
+                                    <input type="number" id="basic-brightness-value" min="50" max="150" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <label for="basic-contrast-slider">Contrast:</label>
+                                    <input type="range" id="basic-contrast-slider" min="50" max="150" value="100">
+                                    <input type="number" id="basic-contrast-value" min="50" max="150" value="100" class="parameter-input">
+                                    <span class="unit">%</span>
+                                </div>
+                                <div class="control-group">
+                                    <button id="reset-basic-image-btn" class="secondary-btn">Reset to 100%</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="view-options">
+                            <h3>View Options</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="view-options">
+                            <div class="control-group">
+                                <label for="realtime-checkbox">Real-time Preview:</label>
+                                <input type="checkbox" id="realtime-checkbox" checked>
+                            </div>
+                            <div class="control-group">
+                                <label for="comparison-mode">Comparison Mode:</label>
+                                <select id="comparison-mode">
+                                    <option value="split">Split View</option>
+                                    <option value="side-by-side">Side by Side</option>
+                                    <option value="dithered">Dithered Only</option>
+                                    <option value="original">Original Only</option>
+                                </select>
+                            </div>
+                            <div class="control-group" id="split-orientation-controls" style="display: none;">
+                                <label for="split-orientation">Split Orientation:</label>
+                                <select id="split-orientation">
+                                    <option value="horizontal">Horizontal Split</option>
+                                    <option value="vertical">Vertical Split</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <button id="reset-view-btn" class="secondary-btn">Reset View</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="actions">
+                            <h3>Actions</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="actions">
+                            <div class="control-group">
+                                <button id="apply-dithering-btn" class="primary-btn" disabled style="display: none;">Apply Dithering</button>
+                                <button id="reset-image-btn" class="secondary-btn" disabled>Reset to Original</button>
+                            </div>
+                            <div class="control-group">
+                                <button id="export-image-btn" class="secondary-btn" disabled>Export Image</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="algorithm-info-content">
+                            <h3>Algorithm Info</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="algorithm-info-content">
+                            <div id="algorithm-info" class="info-panel">
+                                <p><strong>Floyd-Steinberg</strong></p>
+                                <p>Classic error diffusion dithering with 4-pixel error distribution</p>
+                                <p>Quality: High | Speed: Fast</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -76,6 +464,11 @@
                             <p>Upload image here</p>
                             <p>Image preview and comparison will be displayed in this area</p>
                         </div>
+                        <div class="split-view-container" style="display: none;">
+                            <canvas id="split-canvas-left" class="split-canvas left-canvas"></canvas>
+                            <canvas id="split-canvas-right" class="split-canvas right-canvas"></canvas>
+                            <div class="split-line-overlay"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,17 +479,32 @@
                     <h2>Parameters</h2>
                 </div>
                 <div class="panel-content">
-                    <div class="section">
-                        <h3>Advanced Options</h3>
-                        <p>Advanced dithering options will go here</p>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="advanced-options">
+                            <h3>Advanced Options</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="advanced-options">
+                            <p>Advanced dithering options will go here</p>
+                        </div>
                     </div>
-                    <div class="section">
-                        <h3>Matrix Editor</h3>
-                        <p>Custom dithering matrix editing will go here</p>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="matrix-editor">
+                            <h3>Matrix Editor</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="matrix-editor">
+                            <p>Custom dithering matrix editing will go here</p>
+                        </div>
                     </div>
-                    <div class="section">
-                        <h3>Output Settings</h3>
-                        <p>Export and output configuration will go here</p>
+                    <div class="section collapsible-section">
+                        <div class="section-header" data-target="output-settings">
+                            <h3>Output Settings</h3>
+                            <span class="toggle-icon">▼</span>
+                        </div>
+                        <div class="section-content" id="output-settings">
+                            <p>Export and output configuration will go here</p>
+                        </div>
                     </div>
                 </div>
             </div>
